@@ -1,0 +1,73 @@
+{
+	"dtus": 0,
+	"dtu": [],
+	"inverters": 0,
+	"inverter": [],
+	"meters": 0,
+	"meter": [],
+	"batteries": 1,
+	"battery": [
+		{
+			"name": "Batterie",
+			"is_valid": false,
+			"ts_last_success": 0,
+			"sum": 0,
+			"ble": {
+				"is_valid": true,
+				"ts_last_success": 1714552230,
+				"doScan": 0,
+				"doConnect": 0,
+				"connected": 1,
+				"initialized": 1,
+				"soc": 51,
+				"soccalc": 71.34,
+				"t1": 18,
+				"t2": 19,
+				"cmin": 3353.0,
+				"cmax": 3359.0,
+				"cv": 46994.0,
+				"cellV": [
+					3353.0,
+					3355.0,
+					3356.0,
+					3355.0
+				],
+				"pvPower1": 316,
+				"pvPower2": 158,
+				"powerOut1": 0,
+				"powerOut2": 158,
+				"batCapacity": 1142,
+				"batRemain": 510,
+				"dev_version": 135,
+				"dod_level": 80,
+				"disCharge": 10
+			}
+		}
+	],
+	"sums": 1,
+	"sum": [
+		{
+			"name": "",
+			"is_valid": true,
+			"ts_last_success": 1714552226,
+			"minimum": 0,
+			"reserve": 0,
+			"powerIst": 0.0,
+			"solar": 0.0,
+			"battery": 0.0,
+			"max": 0.0,
+			"avail": 0.0,
+			"install": 800.0,
+			"soll": 0.0,
+			"sollBattery": 0.0,
+			"powerUsed": 0.0,
+			"limit_watt": 0.0,
+			"limit_i0": 0,
+			"limit_i1": 0,
+			"limit_i2": 0,
+			"limit_i3": 0,
+			"powerLimit": 0.0
+		}
+	],
+	"state": "1714552230;V00-04-00.nul.esp32;A0A401C4F5FC;Administrator;1;0;0;0;Nulleinspeisung"
+}
