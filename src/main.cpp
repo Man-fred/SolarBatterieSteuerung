@@ -24,7 +24,7 @@ timerNames timerBle[3] = {timerBle1, timerBle2, timerBle3};
 //
 // openDTU-api: https://www.opendtu.solar/firmware/web_api/
 
-String mVersionNr = "V00-05-01.";
+String mVersionNr = "V00-05-02.";
 String mVersionVariante = "nul.";
 
 enum specialVal

@@ -52,6 +52,10 @@ class MyBLE : public BLEClientCallbacks
   float bcct = 0.0;
   float bccellV[14];
 
+  unsigned int vSignal;
+  unsigned char vSSID[32];
+  unsigned char vFC41D_FW[16];
+
   BLEClient *pClient;
   BLERemoteCharacteristic *pRemoteCharacteristic;
   BLEAdvertisedDevice *myDevice;
@@ -92,7 +96,9 @@ class MyBLE : public BLEClientCallbacks
   int ts_last_0F=0;
   boolean command_possible = true;
   unsigned long loop_start=0;
+  unsigned long loop_millis=0;
   byte loop_nr = 0;
+  boolean innerLoop(byte nr);
 
 
 public:

@@ -147,7 +147,6 @@ void MyClass::ntpLoop()
       if (GetNTPLoop())
       {
         GetNTPEnd();
-        ntpState = ntpOnline;
       }
       else if (millis() - ntpTimeout > 10000)
       {
@@ -157,14 +156,14 @@ void MyClass::ntpLoop()
     break;
   case ntpOnline:
     // Zeit Update alle 24Stunden
-    if ((NTPTime + 86400) < timeNow)
+    if (millis() - ntpTimeout > 86400000ul)
     {
       GetNTPStart();
     }
     break;
   case ntpOffline:
-    if (NTPTime == 0 && !RTCok)
-    { // Zeit Update alle 24Stunden oder wenn gar keine Uhrzeit vorhanden ist
+    if (millis() - ntpTimeout > 3600000ul && !RTCok)
+    { // Zeit Update jede Stunde wenn offline
       GetNTPStart();
     }
     break;
@@ -256,7 +255,7 @@ unsigned long MyClass::GetNTPEnd(void)
     // LogSchreiben("NTP: Zeit gesetzt");
     // Serial.println( Temp );
   }
-
+  ntpState = ntpOnline;
   return ntp_time;
 }
 

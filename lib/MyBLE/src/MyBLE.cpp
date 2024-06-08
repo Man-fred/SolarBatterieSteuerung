@@ -1,46 +1,46 @@
 #include "MyBLE.h"
 extern MyClass my;
-//MyBLE clientCB;
+// MyBLE clientCB;
 
 /**  None of these are required as they will be handled by the library with defaults. **
- **                       Remove as you see fit for your needs                        
+ **                       Remove as you see fit for your needs
  **  from Example: class MyClientCallback : public BLEClientCallbacks                 */
 
-  void MyBLE::onConnect(BLEClient *pclient)
-  {
-    ble_connected = true;
-    Serial.println(" BLE connect ");
-    //    - delay: 500ms
-    // statt ble_set_time(); jetzt:
-    ble_command(0x02, 0x00);
-    //    - delay: 500ms
-    ble_set_time();
-  }
+void MyBLE::onConnect(BLEClient *pclient)
+{
+  ble_connected = true;
+  Serial.println(" BLE connect ");
+  //    - delay: 500ms
+  // statt ble_set_time(); jetzt:
+  ble_command(0x02, 0x00);
+  //    - delay: 500ms
+  ble_set_time();
+}
 
-  void MyBLE::onDisconnect(BLEClient *pclient)
-  {
-    ble_connected = false;
-    ble_initialized = false;
-    Serial.println("BLE disconnect");
-  }
-  // ***************** New - Security handled here ********************
-  /* ****** Note: these are the same return values as defaults ********
-  uint32_t MyBLE::onPassKeyRequest()
-  {
-    Serial.println("Client PassKeyRequest");
-    return 123456;
-  }
-  bool MyBLE::onConfirmPIN(uint32_t pass_key)
-  {
-    Serial.print("The passkey YES/NO number: ");
-    Serial.println(pass_key);
-    return true;
-  }
-  void MyBLE::onAuthenticationComplete(ble_gap_conn_desc desc)
-  {
-    Serial.println("Starting BLE work!");
-  }
-  */
+void MyBLE::onDisconnect(BLEClient *pclient)
+{
+  ble_connected = false;
+  ble_initialized = false;
+  Serial.println("BLE disconnect");
+}
+// ***************** New - Security handled here ********************
+/* ****** Note: these are the same return values as defaults ********
+uint32_t MyBLE::onPassKeyRequest()
+{
+  Serial.println("Client PassKeyRequest");
+  return 123456;
+}
+bool MyBLE::onConfirmPIN(uint32_t pass_key)
+{
+  Serial.print("The passkey YES/NO number: ");
+  Serial.println(pass_key);
+  return true;
+}
+void MyBLE::onAuthenticationComplete(ble_gap_conn_desc desc)
+{
+  Serial.println("Starting BLE work!");
+}
+*/
 
 MyBLE::MyBLE()
 {
@@ -50,9 +50,9 @@ MyBLE::MyBLE()
 
 String MyBLE::ble_json()
 {
-  String sType(reinterpret_cast<char*>(vType));
-  String sID(reinterpret_cast<char*>(vID));
-  String sMac(reinterpret_cast<char*>(vMac));
+  String sType(reinterpret_cast<char *>(vType));
+  String sID(reinterpret_cast<char *>(vID));
+  String sMac(reinterpret_cast<char *>(vMac));
 
   return "{\"is_valid\":" + (String)(ble_ok ? "true" : "false") +
          ",\"connected\":" + (String)ble_connected +
@@ -105,12 +105,12 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
       /*******************************************************************
             myDevice = new BLEAdvertisedDevice(advertisedDevice);
       *******************************************************************/
-      //myDevice = advertisedDevice; /** Just save the reference now, no need to copy the object */
-      //doScan = false;
+      // myDevice = advertisedDevice; /** Just save the reference now, no need to copy the object */
+      // doScan = false;
 
     } // Found our server
-  }   // onResult
-};    // MyAdvertisedDeviceCallbacks
+  } // onResult
+}; // MyAdvertisedDeviceCallbacks
 
 void MyBLE::ble_write(const char *uuidServ, const char *uuidChar, std::vector<unsigned char> rdat1)
 {
@@ -135,10 +135,10 @@ void MyBLE::ble_write(const char *uuidServ, const char *uuidChar, std::vector<un
     if (pChr)
     {
       pChr->writeValue(rdat1);
-      Serial.print(" Wrote ");
-      Serial.print(pChr->getUUID().toString().c_str());
-      Serial.print(":");
-      Serial.print(rdat1[3]);
+      // Serial.print(" Wrote ");
+      // Serial.print(pChr->getUUID().toString().c_str());
+      // Serial.print(":");
+      // Serial.print(rdat1[3]);
       if (pChr->canRead())
       {
         Serial.print(" New value ");
@@ -157,6 +157,7 @@ void MyBLE::ble_command(int ble_cmd, int ble_cmd_parm)
   //                characteristic_uuid: 0000ff01-0000-1000-8000-00805f9b34fb
   //                value: !lambda |-
   std::vector<unsigned char> rdat1{0x73, 0x06, 0x23, (unsigned char)ble_cmd};
+
   if (ble_cmd == 0x0C)
   {
     rdat1.push_back((uint8_t)((ble_cmd_parm >> 0) & 0xFF));
@@ -186,61 +187,76 @@ void MyBLE::ble_command(int ble_cmd, String ble_cmd_parm)
   ble_write("0000ff00-0000-1000-8000-00805f9b34fb", "0000ff01-0000-1000-8000-00805f9b34fb", rdat1);
 }
 
+boolean MyBLE::innerLoop(byte nr)
+{
+  if (loop_nr == nr && loop_millis > 500+500*nr)
+  {
+    loop_nr++;
+    return true;
+  }
+  return false;
+}
+
 // Loop
 void MyBLE::BLE_loop()
-{ 
-  if (loop_nr == 99) return;
+{
+  if (loop_nr == 99)
+    return;
 
-  unsigned long loop = millis() - loop_start;
+  loop_millis = millis() - loop_start;
   if (command_possible)
   {
     if (!ble_initialized)
     {
       // eigentlich callback onConnect()
       //    - delay: 500ms
-      if (loop_nr == 0 && loop > 500)
+      if (innerLoop(0))
       {
         Serial.printf(" BLE to %s ok, RSSI %i", device, pClient->getRssi());
         // statt ble_set_time(); jetzt:
         ble_command(0x02, 0x00);
         // erwarte keine Antwort
         command_possible = true;
-        loop_nr++;
       }
-      if (loop_nr == 1 && loop > 1000)
+      if (innerLoop(1))
       {
         Serial.printf(" (i1)");
         //    - delay: 500ms
         ble_set_time();
         // erwarte keine Antwort
         command_possible = true;
-        loop_nr++;
       }
-
-      if (loop_nr == 2 && loop > 1500)
+      if (innerLoop(2))
       {
         Serial.printf(" (i2)");
         // Obtain a reference to the service we are after in the remote BLE server.
         if (infoX("ff00", "ff02", [=](BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *x, size_t data_len, bool isNotify)
-        { ble_notify_parse(pBLERemoteCharacteristic, x, data_len,isNotify); } ))
+                  { ble_notify_parse(pBLERemoteCharacteristic, x, data_len, isNotify); }))
           Serial.print("ff02 ok");
-        loop_nr++;
       }
-      if (loop_nr == 3 && loop > 2000)
+      if (innerLoop(3))
       {
         Serial.printf(" (i3)");
         if (infoX("ff00", "ff06", [=](BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *x, size_t data_len, bool isNotify)
-          { ble_notify_parse(pBLERemoteCharacteristic, x, data_len,isNotify); } ))
+                  { ble_notify_parse(pBLERemoteCharacteristic, x, data_len, isNotify); }))
           Serial.print("ff06 ok");
-        loop_nr++;
       }
-      if (loop_nr == 4 && loop > 2500)
+      if (innerLoop(4))
       {
         Serial.printf(" (i4)");
         ble_command(0x04, 0x01);
-        loop_nr++;
       }
-      if (loop_nr == 5 && loop > 3000)
+      if (innerLoop(5))
+      {
+        Serial.printf(" (i5)");
+        ble_command(0x23, 0x01);
+      }
+      if (innerLoop(6))
+      {
+        Serial.printf(" (i6)");
+        ble_command(0x09, 0x01);
+      }
+      if (innerLoop(7))
       {
         if (vMac[0] != 0)
         { // deviceinfo ok (id(txt_A03_1).state != "" (mac))
@@ -255,17 +271,15 @@ void MyBLE::BLE_loop()
     }
     else
     {
-      if (loop_nr == 0)
+      if (innerLoop(0))
       {
         ble_command(0x03, 0x01);
-        loop_nr++;
       }
-      if (loop_nr == 1 && loop > 500 /* && dev_version > 130 */) // id(sensor_device_version_1).state
+      if (innerLoop(1) /* && dev_version > 130 */) 
       {
-        ble_command(0x30, 0x01);
-        loop_nr++;
+        // ble_command(0x30, 0x01);
       }
-      if (loop_nr == 2 && loop > 1000 /* && dev_version > 130 */) // id(sensor_device_version_1).state
+      if (innerLoop(2) /* && dev_version > 130 */)
       {
         ble_command(0x0F, 0x01);
         loop_nr = 99;
@@ -428,8 +442,8 @@ void MyBLE::ble_notify_parse(BLERemoteCharacteristic *pBLERemoteCharacteristic, 
   //        1: 0x03 periodisch               // Data: deviceInfo
   //        2: 0x30 periodisch unklar, fix ->unnötig?
   //        3: 0x0F periodisch temp und zellspannungen
-  
-  command_possible=true; 
+
+  command_possible = true;
   char delimiter = '_';
   uint8_t count = 0;
   uint8_t count11 = 0;
@@ -446,7 +460,7 @@ void MyBLE::ble_notify_parse(BLERemoteCharacteristic *pBLERemoteCharacteristic, 
 
   if ((count == 16) || (count11 == 3))
   {
-    ts_last_0F=now();
+    ts_last_0F = now();
     // Serial.println("main Data: cmd 0x0F");
     int pos = 0;
     int found = -1;
@@ -506,7 +520,7 @@ void MyBLE::ble_notify_parse(BLERemoteCharacteristic *pBLERemoteCharacteristic, 
   }
   else if (x[3] == 0x03)
   {
-    ts_last_03=now();
+    ts_last_03 = now();
     // sensor
     //  pv_level 1 und 2
     /*
@@ -686,12 +700,13 @@ void MyBLE::ble_notify_parse(BLERemoteCharacteristic *pBLERemoteCharacteristic, 
     if( x[30] == 0x00 ) { call_30.set_value("EU"); }
     if( x[30] == 0x01 ) { call_30.set_value("China"); }
     if( x[30] == 0x02 ) { call_30.set_value("non-EU"); }
+    if( x[30] == 0xff ) { call_30.set_value("not set"); }
     */
     txt_region_1 = (txt_region)x[30];
   }
   else if (x[3] == 0x04)
   {
-    ts_last_04=now();
+    ts_last_04 = now();
     ESP_LOGD("main", "Data: deviceInfo ");
     for (int i = 9; i < 14; i++)
     {
@@ -731,9 +746,33 @@ void MyBLE::ble_notify_parse(BLERemoteCharacteristic *pBLERemoteCharacteristic, 
     // id(txt_A11_1).publish_state(sSSID);
     ble_notify_dump("data 0x08", x, data_len);
   }
+  // ESP_LOGD("main", "Data: Signalstrength/SSID");
+  else if (x[3] == 0x09)
+  {
+    // int data_len = x.size();
+
+    vSignal = int(x[4]);
+
+    for (int i = 6; i < data_len; i++)
+    {
+      vSSID[i - 6] = char(x[i]);
+    }
+    vSSID[data_len - 6] = 0x00;
+  }
+  //ESP_LOGD("main", "Data: fc41d FW ");
+  else if (x[3] == 0x23)
+  {
+    //int data_len = x.size();
+
+    for (int i = 4; i < data_len - 2; i++)
+    {
+      vFC41D_FW[i - 4] = char(x[i]);
+    }
+    vFC41D_FW[data_len - 6] = 0x00;
+  }
   else if (x[3] == 0x30)
   {
-    ts_last_30=now();
+    ts_last_30 = now();
     ble_notify_dump("data 0x30", x, data_len);
 
     uint8_t rxor = 0;
@@ -757,15 +796,7 @@ void MyBLE::ble_notify_parse(BLERemoteCharacteristic *pBLERemoteCharacteristic, 
     //}
     */
   }
-  /*
-  else if (x[3] == 0x30) {
-    ESP_LOGD("main", "Data: cmd 0x30");
-    for(int i=0;i<data_len;i++) {
-      int d1 = x[i];
-      ESP_LOGD("data 30" , "%x \t %i \t %c" , d1, d1, char(d1));
-    }
-  }
-  */
+
   // debug ???
   else if (x[3] == 0x01)
   {
@@ -793,7 +824,7 @@ void MyBLE::ble_notify_parse_test(BLERemoteCharacteristic *pBLERemoteCharacteris
 void MyBLE::BLE_init()
 {
   Serial.println(F("Starting BLE Device"));
-  
+
   BLEDevice::init("");
 }
 
@@ -808,12 +839,13 @@ void MyBLE::BLE_setup(timerNames nr, char *mac)
    *  connections. Timeout should be a multiple of the interval, minimum is 100ms.
    *  Min interval: 12 * 1.25ms = 15, Max interval: 12 * 1.25ms = 15, 0 latency, 51 * 10ms = 510ms timeout
    */
-  pClient->setConnectionParams(12,12,0,51);
+  pClient->setConnectionParams(12, 12, 0, 51);
   /** Set how long we are willing to wait for the connection to complete (seconds), default is 30. */
   pClient->setConnectTimeout(5);
 
-  my.timerSet(nr, timerIfOnline, 10, [=]() { BLE_timer(); });
-  
+  my.timerSet(nr, timerIfOnline, 10, [=]()
+              { BLE_timer(); });
+
   // pBLEScan->start(5, false);
 } // End of setup.
 
@@ -834,7 +866,7 @@ void MyBLE::BLE_timer()
     ble_initialized = false;
     BLEAddress address(device);
     ble_connected = pClient->connect(address);
-  
+
     if (ble_connected)
     {
       loop_nr = 0;
